@@ -1,9 +1,9 @@
 from sklearn.linear_model import Ridge
 import nltk
 import pandas as pd
+import json
 
 
-data = pd.read_csv("ImdbReviewsAveragePS.csv")
-print(data.shape)
-print(data.head(1000))
-
+df = pd.read_json("C:/Users/ali/Projects/BasicSentimentAnalysis/Digital_Music.jsonl", lines = True)
+print(df.shape)
+print(df.head(100))
