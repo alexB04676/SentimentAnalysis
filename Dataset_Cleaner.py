@@ -8,6 +8,7 @@ from nltk.stem import WordNetLemmatizer
 from tqdm import tqdm
 import nltk
 
+
 # Download necessary NLTK data
 nltk.download("stopwords", quiet=True)
 nltk.download("averaged_perceptron_tagger", quiet=True)
@@ -37,11 +38,22 @@ def lemmatize_text(tokens):
 
 
 # Read and preprocess the dataset
-df = pd.read_json("C:/Users/ali/Projects/BasicSentimentAnalysis/Digital_Music.jsonl", lines=True)
+df = pd.read_json("C:/Users/ali/Projects/SentimentAnalysis/Digital_Music.jsonl", lines=True)
 
 
 # Retain only the "rating" and "text" columns for analysis
 df = df.filter(["rating", "text"])
+
+
+num_rows = input("Enter the number of rows to preprocess (or press Enter to process all): ")
+try:
+    num_rows = int(num_rows)
+    if num_rows > 0:
+        print(f"Processing {num_rows} rows...")
+        df = df.head(num_rows)
+except ValueError:
+    print("Invalid or no input provided. Processing the entire dataset...")
+
 
 # Enable progress bars for Pandas operations
 tqdm.pandas()
@@ -53,6 +65,9 @@ df["text"] = df["text"].progress_apply(lambda x: x.lower() if isinstance(x, str)
 # Remove special characters to clean the text for tokenization
 df["text"] = df["text"].progress_apply(lambda x: re.sub(r"\W", " ", x) if isinstance(x, str) else x)
 
+df["text"] = df["text"].progress_apply(lambda x: re.sub("br", " ", x) if isinstance(x, str) else x)
+
+
 # Tokenize the "text" column into individual words for further analysis
 df["text"] = df["text"].progress_apply(lambda x: word_tokenize(x) if isinstance(x, str) else x)
 
@@ -61,6 +76,9 @@ df["text"] = df["text"].progress_apply(lambda tokens: [word for word in tokens i
 
 # Lemmatize the tokens to normalize words to their base forms
 df["text"] = df["text"].progress_apply(lemmatize_text)
+
+# Put the tokenized text back together for TF-IDF Implementation
+df["text"] = df["text"].progress_apply(lambda tokens: " ".join(tokens))
 
 # Write the cleaned dataset to a new JSONL file for future use
 df.to_json('cleaned_dataset.jsonl', orient='records', lines=True)
