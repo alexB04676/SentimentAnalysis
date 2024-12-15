@@ -2,9 +2,12 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import RandomizedSearchCV, train_test_split
+
+# Tree Visualisation
+from sklearn.tree import export_graphviz
 
 # Plots the distribution of TF-IDF importance scores.
 def plot_distribution(tfidf_sums, save_path = None):
@@ -58,7 +61,7 @@ tfidf_sums = tfidf_matrix.sum(axis=0).A1 # Aggregate importance (sum of TF-IDF s
 
 distribution_config(tfidf_sums)
 
-""" # Calculate the 90th percentile threshold for TF-IDF sums and retain only the first 10%
+# Calculate the 90th percentile threshold for TF-IDF sums and retain only the first 10%
 threshold = np.percentile(tfidf_sums, 90)
 
 # Create a mask to identify features whose importance exceeds the threshold
@@ -69,43 +72,16 @@ filtered_tfidf = tfidf_matrix[: , top_features_mask]
 
 # Display the dimensionality before and after filtering
 print(f"Original number of features: {tfidf_matrix.shape[1]}")
-print(f"Number of features after filtering: {filtered_tfidf.shape[1]}")"""
+print(f"Number of features after filtering: {filtered_tfidf.shape[1]}")
 
-
-
-x_train, x_test, y_train, y_test = train_test_split(
-    tfidf_matrix, rate, test_size= 0.2, random_state= 42
+X_train, X_test, y_train, y_test = train_test_split(
+    filtered_tfidf, rate, test_size=0.2, random_state=42
 )
 
+rf = RandomForestClassifier()
+rf.fit(X_train, y_train)
 
-ridge_model = Ridge(alpha=1.0, random_state=42)
-ridge_model.fit(x_train, y_train)
+y_pred = rf.predict(X_test)
 
-# Predict on test data
-y_pred = ridge_model.predict(x_test)
-
-# Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
-
-baseline_pred = [y_train.mean()] * len(y_test)
-baseline_mse = mean_squared_error(y_test, baseline_pred)
-baseline_r2 = r2_score(y_test, y_pred)
-
-print(f"Baseline MSE: {baseline_mse}")
-print(f"baseline R2 Score: {baseline_r2}")
-print("Model Performance:")
-print(f"Mean Squared Error (MSE): {mse:.3f}")
-print(f"R² Score: {r2:.3f}")
-
-x_train_dense = x_train.toarray()
-
-# Calculate the sum of TF-IDF scores per document
-sum_tfidf_per_doc = np.sum(x_train_dense, axis=1)
-
-# Scatterplot: Sum TF-IDF score vs Ratings
-plt.scatter(sum_tfidf_per_doc, y_train, alpha=0.5)
-plt.xlabel("Sum of TF-IDF Scores (per document)")
-plt.ylabel("Rating")
-plt.title("Sum TF-IDF vs Rating")
-plt.show()
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
