@@ -3,8 +3,15 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
+from scipy.stats import randint
+import os
+
+# Tree Visualisation
+from sklearn.tree import export_graphviz
+from IPython.display import Image
+import graphviz
 
 # Tree Visualisation
 from sklearn.tree import export_graphviz
@@ -38,8 +45,8 @@ def distribution_config(tfidf_sums):
     elif distribution_options.lower() == "show":
         plot_distribution(tfidf_sums, save_path=None)
     else:
-        print("invalid input, Saving Distribution as a seperate file by default")
-        plot_distribution(tfidf_sums, save_path="distribution.png")
+        print("invalid input, Showing you the score distributions by default")
+        plot_distribution(tfidf_sums, save_path=None)
 
 # Load the dataset
 df = pd.read_json("C:/Users/ali/Projects/SentimentAnalysis/cleaned_dataset.jsonl", lines = True)
@@ -59,7 +66,7 @@ tfidf_matrix = vectorizer.fit_transform(text)
 feature_names = vectorizer.get_feature_names_out()
 tfidf_sums = tfidf_matrix.sum(axis=0).A1 # Aggregate importance (sum of TF-IDF scores) for each feature
 
-distribution_config(tfidf_sums)
+"distribution_config(tfidf_sums)"
 
 # Calculate the 90th percentile threshold for TF-IDF sums and retain only the first 10%
 threshold = np.percentile(tfidf_sums, 90)
@@ -69,6 +76,8 @@ top_features_mask = tfidf_sums > threshold
 
 # Filter the original TF-IDF matrix to retain only the top 10% most important features
 filtered_tfidf = tfidf_matrix[: , top_features_mask]
+
+filtered_feature_names = vectorizer.get_feature_names_out()[top_features_mask]
 
 # Display the dimensionality before and after filtering
 print(f"Original number of features: {tfidf_matrix.shape[1]}")
@@ -84,4 +93,24 @@ rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 
 accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
+print(f"Accuracy: {accuracy}")
+
+"""# Create a directory to save the trees
+output_dir = "decision_trees"
+os.makedirs(output_dir, exist_ok=True)
+
+# Render and save the first 3 decision trees as PDFs
+for i in range(3):
+    tree = rf.estimators_[i]
+    dot_data = export_graphviz(tree,
+                               feature_names=filtered_feature_names,  # Filtered feature names
+                               filled=True,  
+                               max_depth=2, 
+                               impurity=False, 
+                               proportion=True)
+    # Save graph to PDF
+    graph = graphviz.Source(dot_data)
+    output_path = os.path.join(output_dir, f"tree_{i+1}.pdf")
+    graph.render(output_path, cleanup=True)  # Save and clean up temporary files
+    print(f"Decision tree {i+1} saved to '{output_path}'.")"""
+    
