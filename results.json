@@ -1,0 +1,12 @@
+{
+    "best_params": {
+        "n_estimators": 100,
+        "min_samples_split": 10,
+        "min_samples_leaf": 1,
+        "max_features": "log2",
+        "max_depth": null
+    },
+    "accuracy": 0.8,
+    "mse": 0.66,
+    "r2_score": -0.18364418938307026
+}

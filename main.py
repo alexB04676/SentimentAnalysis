@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score, ConfusionMatrixDisplay
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from scipy.stats import randint
 import os
+import json
 from sklearn.tree import export_graphviz
 from IPython.display import Image
 import graphviz
@@ -53,11 +54,21 @@ class TqdmSearchCV(RandomizedSearchCV):
                 pbar.update(1)
         return self
 
-
-# Load the dataset
-df = pd.read_json("C:/Users/ali/Projects/SentimentAnalysis/cleaned_dataset.jsonl", lines = True)
-text = df["text"]
-rate = df["rating"]
+# Load the Dataset with relative paths and error handling
+try:
+    data_path = os.path.join(os.getcwd(), "cleaned_dataset.jsonl")
+    df = pd.read_json(data_path, lines=True)
+    text = df["text"]
+    rate = df["rating"]
+    if df.empty:
+        raise ValueError("Dataset is empty. Maybe there was a problem in your preprocessing? ")
+except FileNotFoundError:
+    print("Error: cleaned_dataset.jsonl not found. Run Dataset_cleaner.py first.")
+    exit()
+except ValueError as e:
+    print(e)
+    exit()
+    
 
 # Initialize TF-IDF vectorizer
 vectorizer = TfidfVectorizer(
@@ -135,6 +146,17 @@ y_pred = best_model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
+
+results = {
+    "best_params": random_search.best_params_,
+    "accuracy": accuracy,
+    "mse": mse,
+    "r2_score": r2
+}
+with open("results.json", "w") as f:
+    json.dump(results, f, indent=4)
+    print("Results saved in 'results.json'")
+
 
 print("\nModel Performance with Best Parameters:")
 print(f"Mean Squared Error (MSE): {mse:.3f}")
