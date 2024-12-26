@@ -13,6 +13,7 @@ from IPython.display import Image
 import graphviz
 from sklearn.metrics import mean_squared_error, r2_score
 from tqdm import tqdm
+from joblib import dump
 
 # Plots the distribution of TF-IDF importance scores.
 def plot_distribution(tfidf_sums, save_path = None):
@@ -162,6 +163,10 @@ print("\nModel Performance with Best Parameters:")
 print(f"Mean Squared Error (MSE): {mse:.3f}")
 print(f"Accuracy: {accuracy:.3f}")
 
+dump(best_model, "RandomForestSA.joblib")
+print("Model Saved as 'RandomForestSA.joblib'")
+
+0
 """# Create a directory to save the trees
 output_dir = "decision_trees"
 os.makedirs(output_dir, exist_ok=True)
