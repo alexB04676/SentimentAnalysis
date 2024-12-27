@@ -166,7 +166,7 @@ print(f"Accuracy: {accuracy:.3f}")
 dump(best_model, "RandomForestSA.joblib")
 print("Model Saved as 'RandomForestSA.joblib'")
 
-0
+
 """# Create a directory to save the trees
 output_dir = "decision_trees"
 os.makedirs(output_dir, exist_ok=True)
