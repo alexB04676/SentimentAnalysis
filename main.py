@@ -55,6 +55,28 @@ class TqdmSearchCV(RandomizedSearchCV):
                 pbar.update(1)
         return self
 
+# a function to visualize the first 3 decision trees
+def DecisionTreeVisualization():
+    # Create a directory to save the trees
+    output_dir = "decision_trees"
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Render and save the first 3 decision trees as PDFs
+    for i in range(3):
+        tree = best_model.estimators_[i]
+        dot_data = export_graphviz(tree,
+                                feature_names=vectorizer.get_feature_names_out(),
+                                filled=True,  
+                                max_depth=2, 
+                                impurity=False, 
+                                proportion=True)
+        # Save graph to PDF
+        graph = graphviz.Source(dot_data)
+        output_path = os.path.join(output_dir, f"tree_{i+1}.pdf")
+        graph.render(output_path, cleanup=True)  # Save and clean up temporary files
+        print(f"Decision tree {i+1} saved to '{output_path}'.")
+        
+
 # Load the Dataset with relative paths and error handling
 try:
     data_path = os.path.join(os.getcwd(), "cleaned_dataset.jsonl")
@@ -118,7 +140,6 @@ param_distributions = {
 # Initialize Random Forest model  
 rf = RandomForestClassifier(random_state=42)
 
-
 # Set up Randomized Search with Tqdm progress bar
 random_search = TqdmSearchCV(
     estimator=rf,
@@ -142,6 +163,7 @@ best_model = random_search.best_estimator_
 # Predict on the test data using the best model
 y_pred = best_model.predict(X_test)
 
+"DecisionTreeVisualization()"
 
 # Evaluate the model's performance
 accuracy = accuracy_score(y_test, y_pred)
@@ -165,23 +187,3 @@ print(f"Accuracy: {accuracy:.3f}")
 
 dump(best_model, "RandomForestSA.joblib")
 print("Model Saved as 'RandomForestSA.joblib'")
-
-
-"""# Create a directory to save the trees
-output_dir = "decision_trees"
-os.makedirs(output_dir, exist_ok=True)
-
-# Render and save the first 3 decision trees as PDFs
-for i in range(3):
-    tree = rf.estimators_[i]
-    dot_data = export_graphviz(tree,
-                               feature_names=filtered_feature_names,  # Filtered feature names
-                               filled=True,  
-                               max_depth=2, 
-                               impurity=False, 
-                               proportion=True)
-    # Save graph to PDF
-    graph = graphviz.Source(dot_data)
-    output_path = os.path.join(output_dir, f"tree_{i+1}.pdf")
-    graph.render(output_path, cleanup=True)  # Save and clean up temporary files
-    print(f"Decision tree {i+1} saved to '{output_path}'.")"""
