@@ -47,4 +47,9 @@ Sentiment Analysis with TF-IDF and Random Forest
 - TF-IDF importance distribution.
 - Decision tree visualizations for interpretability.
 
+PS: this is the first project that i've decided to make public on github and also the first project
+i've done 95% by myself. so i'll be EXTREMELY grateful for any kind of feedback, suggestion or general
+improvements. If you have an idea for a better approach or think something could be enhanced, don’t hesitate
+to reach out!
+
 - Author: Ali Bekhradi - 
